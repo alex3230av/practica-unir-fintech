@@ -8,11 +8,15 @@ import sys
 
 DEFAULT_FILENAME = "words.txt"
 DEFAULT_DUPLICATES = False
+DEFAULT_ASCENDING = True
 
 
-def sort_list(items, ascending=True):
+def sort_list(items, ascending=True, remove_duplicates=False):
     if not isinstance(items, list):
-        raise RuntimeError(f"No puede ordenar {type(items)}")
+        raise RuntimeError(f"Cannot sort {type(items)}")
+
+    if remove_duplicates:
+        items = remove_duplicates_from_list(items)
 
     return sorted(items, reverse=(not ascending))
 
@@ -24,26 +28,33 @@ def remove_duplicates_from_list(items):
 if __name__ == "__main__":
     filename = DEFAULT_FILENAME
     remove_duplicates = DEFAULT_DUPLICATES
-    if len(sys.argv) == 3:
+    ascending = DEFAULT_ASCENDING
+    if len(sys.argv) in (3, 4):
         filename = sys.argv[1]
         remove_duplicates = sys.argv[2].lower() == "yes"
+        if len(sys.argv) == 4:
+            order = sys.argv[3].lower()
+            if order not in ("asc", "desc"):
+                print("The third argument must be 'asc' or 'desc'")
+                sys.exit(1)
+            ascending = order == "asc"
     else:
-        print("Se debe indicar el fichero como primer argumento")
-        print("El segundo argumento indica si se quieren eliminar duplicados")
+        print("The file must be provided as the first argument")
+        print("The second argument indicates whether duplicates should be removed (yes|no)")
+        print("The optional third argument indicates the sort order (asc|desc)")
         sys.exit(1)
 
-    print(f"Se leerán las palabras del fichero {filename}")
+    print(f"Words will be read from file {filename}")
     file_path = os.path.join(".", filename)
     if os.path.isfile(file_path):
         word_list = []
         with open(file_path, "r") as file:
             for line in file:
-                word_list.append(line.strip())
+                word = line.strip()
+                if word:
+                    word_list.append(word)
     else:
-        print(f"El fichero {filename} no existe")
+        print(f"File {filename} does not exist")
         word_list = ["ravenclaw", "gryffindor", "slytherin", "hufflepuff"]
 
-    if remove_duplicates:
-        word_list = remove_duplicates_from_list(word_list)
-
-    print(sort_list(word_list))
+    print(sort_list(word_list, ascending=ascending, remove_duplicates=remove_duplicates))
